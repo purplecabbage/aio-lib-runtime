@@ -164,7 +164,7 @@ describe('build by zipping js action folder', () => {
       'actions/action-zip/package.json': JSON.stringify(packagejson)
     })
     await buildActions(config)
-    expect(webpackMock.run).toHaveBeenCalledTimes(0) // no webpack bundling
+    expect(webpack.webpackMock.run).toHaveBeenCalledTimes(0) // no webpack bundling
     expect(utils.zip).toHaveBeenCalledWith(path.normalize('/dist/actions/action-zip-temp'),
       path.normalize('/dist/actions/action-zip.zip'))
 
@@ -184,7 +184,7 @@ describe('build by zipping js action folder', () => {
     })
 
     await buildActions(config)
-    expect(webpackMock.run).toHaveBeenCalledTimes(0) // no webpack bundling
+    expect(webpack.webpackMock.run).toHaveBeenCalledTimes(0) // no webpack bundling
     expect(utils.zip).toHaveBeenCalledWith(path.normalize('/dist/actions/action-zip-temp'),
       path.normalize('/dist/actions/action-zip.zip'))
   })
