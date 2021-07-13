@@ -186,7 +186,7 @@ const buildActions = async (config, filterActions) => {
   }
 
   // clear out dist dir
-  fs.emptyDirSync(config.actions.dist)
+  // fs.emptyDirSync(config.actions.dist)
   const builtList = []
   for (const [pkgName, pkg] of Object.entries(modifiedConfig.manifest.full.packages)) {
     const actionsToBuild = Object.entries(pkg.actions || {})
@@ -203,7 +203,20 @@ const buildActions = async (config, filterActions) => {
       // zipFileName would be <actionName>.zip for default package and
       // <pkgName>/<actionName>.zip for non default packages for backward compatibility
       const zipFileName = utils.getActionZipFileName(pkgName, actionName, modifiedConfig.ow.package === pkgName)
-      builtList.push(await buildAction(zipFileName, action, config.root, config.actions.dist))
+
+      const { mtimeMs } = fs.statSync(path.dirname(action.function))
+      const modLogFilePath = path.join(config.actions.dist, zipFileName) + '.log'
+      const modLog = fs.readJSONSync(modLogFilePath, { throws: false })
+      if (modLog && modLog.lastModified === mtimeMs) {
+        builtList.push(path.join(config.actions.dist, zipFileName) + '.zip')
+        // `continue` ... could go here, but I think the if/else is more clear //
+      } else {
+        fs.removeSync(path.join(config.actions.dist, zipFileName) + ',zip')
+        fs.removeSync(path.join(config.actions.dist, zipFileName) + '.log')
+        fs.removeSync(path.join(config.actions.dist, zipFileName, '-temp/'))
+        fs.writeJSONSync(modLogFilePath, { lastModified: mtimeMs })
+        builtList.push(await buildAction(zipFileName, action, config.root, config.actions.dist))
+      }
     }
   }
   return builtList
